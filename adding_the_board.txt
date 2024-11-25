@@ -11,15 +11,15 @@ A **System-on-Chip (SoC)** integrates all major components of a computing system
 - The **CPU** in a SoC handles the computational logic.
 - Integrated **peripherals** like UARTs, timers, and memory controllers enable communication, timekeeping, and data storage.
 
-For your project, the **S32K358 SoC** serves as the foundation for the S32K3X8EVB board. It is pre-configured with a Cortex-M7 CPU and additional peripherals like UART and timers.
+For our project, the **S32K358 SoC** serves as the foundation for the S32K3X8EVB board. It is pre-configured with a Cortex-M7 CPU and additional peripherals like UART and timers.
 
 ---
 
 ### **2. Adding the Board to QEMU**
-A **board** in QEMU represents the hardware platform that uses a SoC. Here's how you implemented it:
+A **board** in QEMU represents the hardware platform that uses a SoC. Here's how we implemented it:
 
 1. **Create a Board File:**
-   - You defined a board initialization file (e.g., `s32k3x8evb.c`) in the `hw/arm/` directory.
+   - We defined a board initialization file (e.g., `s32k3x8evb.c`) in the `hw/arm/` directory.
    - The board specifies:
      - The SoC to use (e.g., `s32k358-soc`).
      - Clock configuration (e.g., system clock).
@@ -29,7 +29,7 @@ A **board** in QEMU represents the hardware platform that uses a SoC. Here's how
    - Add the board file to the `hw/arm/meson.build` file to ensure it's included during compilation.
 
 3. **Update Kconfig:**
-   - You created a `Kconfig` entry for the board, specifying its dependencies (e.g., `S32K358_SOC`) and enabling it for ARM architectures.
+   - We created a `Kconfig` entry for the board, specifying its dependencies (e.g., `S32K358_SOC`) and enabling it for ARM architectures.
    - This makes the board selectable during configuration.
 
 ---
@@ -47,7 +47,7 @@ This step required no custom implementation but ensured the CPU is correctly int
 ---
 
 ### **4. Implementing the SoC**
-To define the **S32K358 SoC**, you created:
+To define the **S32K358 SoC**, we created:
 1. **A Header File (`s32k358_soc.h`):**
    - Defined the structure `S32K358State` to manage the SoC state, including peripherals and memory regions.
    - Declared base addresses and IRQ numbers for peripherals like UART and timers.
@@ -62,7 +62,7 @@ The SoC integrates these components into a cohesive unit, representing the real 
 ---
 
 ### **5. Configuring Peripherals**
-You implemented **UARTs** and **timers** (PIT):
+We implemented **UARTs** and **timers** (PIT):
 - For **UARTs:**
   - Mapped each UART to its base address and IRQ line.
   - Used `qdev_prop_set_chr()` to connect them to the QEMU serial device for user interaction.
