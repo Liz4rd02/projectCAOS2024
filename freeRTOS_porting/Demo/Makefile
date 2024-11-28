@@ -10,6 +10,9 @@ KERNEL_PORT_DIR := $(KERNEL_DIR)/portable/GCC/ARM_CM7/r0p1
 # Where to store all the generated files (objects, elf and map)
 OUTPUT_DIR := ./Output
 
+#directory arm
+ARM_DIR := /../../qemu/hw/intc/armv7m_nvic.h
+
 DEMO_NAME := demo
 ELF := $(OUTPUT_DIR)/$(DEMO_NAME).elf
 MAP := $(OUTPUT_DIR)/$(DEMO_NAME).map
@@ -29,6 +32,7 @@ QEMU_FLAGS_DBG = -s -S
 
 INCLUDE_DIRS = -I$(KERNEL_DIR)/include -I$(KERNEL_PORT_DIR)
 INCLUDE_DIRS += -I$(DEMO_PROJECT)
+INCLUDE_DIRS += -I$(ARM_DIR)
 #INCLUDE_DIRS += -I$(DEMO_PROJECT)/CMSIS/Core/Include
 
 

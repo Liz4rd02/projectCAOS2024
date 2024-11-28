@@ -1,3 +1,4 @@
+
 #include "pit.h"
 //#include "core_cm7.h"
 #include "lpuart.h"
@@ -21,6 +22,7 @@ void pit_init(void) {
 
 void pit_clear_interrupt(void) {
     	PIT_TFLG0 = 1; // Write 1 to clear the interrupt flag
+
 }
 
 // PIT handler called by the ISR
@@ -33,6 +35,36 @@ void PIT_Handler(void) {
     	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     	*/
 }
+
+
+
+void NVIC_EnableIRQ(void) {
+	NVIC_ISER3 |= (0x01 << 0);
+	
+}
+
+void NVIC_DisableIRQ(void) {
+	NVIC_ICER3 |= (0x01 << 0);
+}
+
+void NVIC_SetPriority(uint8_t priority) {
+	NVIC_IPR24 |= (priority << 0);
+}
+
+
+void pit_init(void) {
+	pit_disable();
+	PIT_LDVAL0 = 0x100000U;    //The starting point where the timer begins to reduce. Value= (time period / clock period) -1
+    PIT_CTRL0 |= (0x01 << 1U);	//To the Timer Interupt Enable Flag
+	PIT_TCTRL0 |= (0x01 << 0); //Enable the interrupt
+}
+
+void pit_disable(void) {
+    PIT_TCTRL0 |= (0x00 << 0); //Disable the interrupt	
+}
+
+
+
 
 /*
 PIT Registers:

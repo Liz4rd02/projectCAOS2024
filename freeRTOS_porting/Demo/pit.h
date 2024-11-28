@@ -18,11 +18,33 @@
 
 #define PIT_IRQ 96
 
+// Base address for the NVIC
+#define NVIC_BASE	    0xE000E100
+
+// Offsets for NVCI registers (there is another registers, checks we should ad it)
+#define NVIC_ISER3	    (*(volatile uint32_t *)(NVIC_BASE + 0x0C))
+#define NVIC_ICER3          (*(volatile uint32_t *)(NVIC_BASE + 0x8C))
+#define NVIC_ISPR3          (*(volatile uint32_t *)(NVIC_BASE + 0x20C))
+#define NVIC_ICPR3          (*(volatile uint32_t *)(NVIC_BASE + 0x28C))
+#define NVIC_IABR3          (*(volatile uint32_t *)(NVIC_BASE + 0x30C))
+#define NVIC_IPR24          (*(volatile uint32_t *)(NVIC_BASE + 0x460))
+
+//NVCI methods
+void NVIC_EnableIRQ(void);
+
+void NVIC_DisableIRQ(void);
+
+void NVIC_SetPriority(uint8_t priority);
+
+
 void pit_init(void);
+
+void pit_disable(void);
 
 void pit_clear_interrupt(void);
 
-void PIT_Handler(void);
+void pit_handler(void);
 
 #endif /* PIT_H */
+
 

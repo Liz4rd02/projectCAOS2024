@@ -69,8 +69,10 @@ We implemented **UARTs** and **timers** (PIT):
 - For **timers:**
   - Configured a timer device (PIT) to simulate timing functionality.
   - Linked its interrupt line to the ARM Cortex-M7 CPU for proper emulation.
-  
-  
+  - Add the reference to the library #include "hw/intc/armv7m_nvic.h" in the Makefile.
+  - Define the NVIC registers (ISER3, ICER3, ISPR3, ICPR0, IABR, IPR) because we need to serve IRQ number 96.
+ 
+ 
   Relationship Between IRQs and Peripherals
 
 Peripherals use IRQs to communicate with the CPU in real time:
