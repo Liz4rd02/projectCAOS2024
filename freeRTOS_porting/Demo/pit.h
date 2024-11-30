@@ -18,6 +18,9 @@
 
 #define PIT_IRQ 96
 
+#define MC_ME_BASE 	    
+
+
 // Base address for the NVIC
 #define NVIC_BASE	    0xE000E100
 
@@ -29,19 +32,17 @@
 #define NVIC_IABR3          (*(volatile uint32_t *)(NVIC_BASE + 0x30C))
 #define NVIC_IPR24          (*(volatile uint32_t *)(NVIC_BASE + 0x460))
 
-//NVCI methods
+/*NVIC methods*/
 void NVIC_EnableIRQ(void);
 
 void NVIC_DisableIRQ(void);
 
 void NVIC_SetPriority(uint8_t priority);
 
-
+/*PIT methods*/
 void pit_init(void);
 
 void pit_disable(void);
-
-void pit_clear_interrupt(void);
 
 void pit_handler(void);
 
