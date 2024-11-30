@@ -67,7 +67,8 @@ We implemented **UARTs** and **timers** (PIT):
   - Mapped each UART to its base address and IRQ line.
   - Used `qdev_prop_set_chr()` to connect them to the QEMU serial device for user interaction.
 - For **timers:**
-  - Enable the PIT module by setting the MC_ME module, in particular we set the register PRTN0_COFB1_CLKEN, at REQ44, so we can ran the timer (in progress)
+  - Enable the PIT module by setting the MC_ME module, in particular we set the register PRTN0_COFB1_CLKEN, at REQ44, so we can ran the timer 
+  - IMPORTANT!! THE PIT MODULE DOES NOT HAVE AN INTEGRATED PRESCALER, WE HAVE TO INTERACT WITH THE SYSTEM CLOCK: check at pag. 960 and below for more details.
   - Configure the timer prescaler in order to have a defined clock frequency (in progress)
   - Configured a timer device (PIT) to simulate timing functionality.
   - Linked its interrupt line to the ARM Cortex-M7 CPU for proper emulation.

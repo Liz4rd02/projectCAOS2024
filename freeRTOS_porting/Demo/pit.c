@@ -52,25 +52,27 @@ void NVIC_SetPriority(uint8_t priority) {
 
 void pit_init(void) {
 	// enable the clock for the PIT module and the prescaler
+	MC_ME_PRTN0_COFB1_CLKEN |= (0x01 << 12U);
+		
 	pit_disable();
 	PIT_LDVAL0 = 0x0007A11FU;  //The starting point where the timer begins to reduce.
 	
     	PIT_TCTRL0 = PIT_TCTRL_TIE | PIT_TCTRL_TIE ; //To the Timer Interupt Enable Flag (TIE) and enable the interrupt
 	
 	//add abilitation of channel bit (CHN) in case we want to use more PITs toghether
-	PIT_MCR &= ~(1 << 1); // set the MDIS bit to 0, to enable PIT
+	PIT_MCR &= ~(0x01 << 1U); // set the MDIS bit to 0, to enable PIT
 	NVIC_SetPriority(5);
 	NVIC_EnableIRQ(); 
 }
 
 
 void pit_disable(void) {
-	PIT_MCR |= (1 << 1); //set the MDIS bit to 1, to disable PIT
-    	PIT_TCTRL0 |= (0x00 << 0); //Disable the interrupt	
+	PIT_MCR |= (0X01 << 1U); //set the MDIS bit to 1, to disable PIT
+    	PIT_TCTRL0 |= (0x00 << 0U); //Disable the interrupt	
 }
 
 void pit_clear_interrupt(void) {
-	PIT_TFLG0 = 1; // Write 1 to clear the interrupt flag                            
+	PIT_TFLG0 = 0x01; // Write 1 to clear the interrupt flag                            
 }
 
 

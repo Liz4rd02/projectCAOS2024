@@ -18,13 +18,18 @@
 
 #define PIT_IRQ 96
 
-#define MC_ME_BASE 	    
+//base address for MC_ME module, to enable PIT
+#define MC_ME_BASE 	    0x402DC000 
+
+//offsets fot MC_ME register (according to the reference manual: section 46.7.1)
+#define MC_ME_PRTN0_COFB1_CLKEN		((*volatile uint32_t *)(MC_ME_BASE + 0x134))
+
 
 
 // Base address for the NVIC
 #define NVIC_BASE	    0xE000E100
 
-// Offsets for NVCI registers (there is another registers, checks we should ad it)
+// Offsets for NVIC registers (there is another registers, checks we should ad it)
 #define NVIC_ISER3	    (*(volatile uint32_t *)(NVIC_BASE + 0x0C))
 #define NVIC_ICER3          (*(volatile uint32_t *)(NVIC_BASE + 0x8C))
 #define NVIC_ISPR3          (*(volatile uint32_t *)(NVIC_BASE + 0x20C))
