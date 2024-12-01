@@ -101,8 +101,6 @@ LDFLAGS += -mfpu=fpv5-sp-d16 -mfloat-abi=hard
 #CFLAGS = -mcpu=cortex-m7 -mthumb -mfloat-abi=soft
 #LDFLAGS = -mcpu=cortex-m7 -mthumb -mfloat-abi=soft
 
-
-
 # Kernel files
 SOURCE_FILES += $(KERNEL_DIR)/list.c
 SOURCE_FILES += $(KERNEL_DIR)/tasks.c
@@ -117,6 +115,7 @@ SOURCE_FILES += $(KERNEL_DIR)/stream_buffer.c
 SOURCE_FILES += $(DEMO_PROJECT)/main.c
 SOURCE_FILES += $(DEMO_PROJECT)/lpuart.c
 SOURCE_FILES += $(DEMO_PROJECT)/pit.c
+SOURCE_FILES *= $(DEMO_PROJECT)/clock.c
 
 # Start-up code
 SOURCE_FILES += ./startup.c

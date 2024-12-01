@@ -45,7 +45,7 @@ void NVIC_DisableIRQ(void);
 void NVIC_SetPriority(uint8_t priority);
 
 /*PIT methods*/
-void pit_init(void);
+void pit_init(uint8_t divid);
 
 void pit_disable(void);
 

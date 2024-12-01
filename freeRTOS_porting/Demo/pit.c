@@ -1,4 +1,4 @@
-
+#include "clock.h"
 #include "pit.h"
 //#include "core_cm7.h"
 #include "lpuart.h"
@@ -17,7 +17,6 @@ void pit_init(void) {
 	/* It takes two parameters: the interrupt number and the priority level to assign.*/
 	//NVIC_SetPriority( PIT_IRQ, configMAX_SYSCALL_INTERRUPT_PRIORITY );
 }
-
 
 // PIT handler called by the ISR
 void PIT_Handler(void) {
@@ -50,8 +49,10 @@ void NVIC_SetPriority(uint8_t priority) {
  *Formula to calculate the initial value: Start_value = (timer_period/clock_period)-1
 */
 
-void pit_init(void) {
+void pit_init(uint8_t divid) {
 	// enable the clock for the PIT module and the prescaler
+	clock_config();
+	set_prescaler(divid);
 	MC_ME_PRTN0_COFB1_CLKEN |= (0x01 << 12U);
 		
 	pit_disable();

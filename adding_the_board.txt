@@ -67,13 +67,16 @@ We implemented **UARTs** and **timers** (PIT):
   - Mapped each UART to its base address and IRQ line.
   - Used `qdev_prop_set_chr()` to connect them to the QEMU serial device for user interaction.
 - For **timers:**
-  - Enable the PIT module by setting the MC_ME module, in particular we set the register PRTN0_COFB1_CLKEN, at REQ44, so we can ran the timer 
-  - IMPORTANT!! THE PIT MODULE DOES NOT HAVE AN INTEGRATED PRESCALER, WE HAVE TO INTERACT WITH THE SYSTEM CLOCK: check at pag. 960 and below for more details.
-  - Configure the timer prescaler in order to have a defined clock frequency (in progress)
-  - Configured a timer device (PIT) to simulate timing functionality.
-  - Linked its interrupt line to the ARM Cortex-M7 CPU for proper emulation.
-  - Add the reference to the library #include "hw/intc/armv7m_nvic.h" in the Makefile.
-  - Define the NVIC registers (ISER3, ICER3, ISPR3, ICPR0, IABR, IPR) because we need to serve IRQ number 96.
+  - Enable the PIT module by setting the MC_ME module, in particular we set the register PRTN0_COFB1_CLKEN, at REQ44, so we can ran the timer 			
+  - IMPORTANT!! THE PIT MODULE DOES NOT HAVE AN INTEGRATED PRESCALER, WE HAVE TO INTERACT WITH THE SYSTEM CLOCK: check at pag. 960 and below for more details.  |
+  - Enable the FIRC CLOCK as the primary source clock (SYS_CLOCK): set MC_CGM.MUX_0_CSC[SELSTAT]								|
+  - Set the register HSE_B.CONFIG_REG_GPR[FIRC_DIV_SEL], to select the first divider for FIRC clock								|create the file clock.c 																				and clock.h to set clock
+  - Select the proper mode for CORE_CLK (pag. 963), in order to configure the source clock for the pit0								|
+  - Select the proper divider (MC_CGM.MUX_0_DC_0[DIV]), to be configured as prescaler 										|			  - Configure the timer prescaler in order to have a defined clock frequency (in progress)									
+  - Configured a timer device (PIT) to simulate timing functionality.												
+  - Linked its interrupt line to the ARM Cortex-M7 CPU for proper emulation.											
+  - Add the reference to the library #include "hw/intc/armv7m_nvic.h" in the Makefile.										
+  - Define the NVIC registers (ISER3, ICER3, ISPR3, ICPR0, IABR, IPR) because we need to serve IRQ number 96.							
  
  
   Relationship Between IRQs and Peripherals
