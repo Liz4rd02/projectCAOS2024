@@ -7,6 +7,8 @@
 #include "hw/arm/boot.h"
 #include "hw/arm/s32k358_soc.h"
 
+#include "qemu/log.h"
+
 /* Define the main SYSCLK frequency */
 //Based on the S32K358 documentation, FIRC (Fast Internal Reference Clock) is the default system clock source, and it operates at 48 MHz.
 #define SYSCLK_FRQ 48000000ULL /* 48 MHz */
@@ -25,12 +27,15 @@ static void s32k3x8evb_init(MachineState *machine)
     soc_dev = qdev_new(TYPE_S32K358_SOC);
     object_property_add_child(OBJECT(machine), "soc", OBJECT(soc_dev));
     qdev_connect_clock_in(soc_dev, "sysclk", sysclk);
+    qemu_log("SYSCLK connected with frequency: %u Hz\n", clock_get_hz(sysclk));
+
     sysbus_realize_and_unref(SYS_BUS_DEVICE(soc_dev), &error_fatal);
+    qemu_log("Realized S32K358 SoC\n");
+
 
     /* Load the firmware if specified */
     if (machine->kernel_filename) {
-        /*FLASH_SIZE based on the S32K3X8EVB default memory configuration */
-        armv7m_load_kernel(ARM_CPU(first_cpu), machine->kernel_filename, FLASH_BASE_ADDR, FLASH_SIZE); 
+        armv7m_load_kernel(ARM_CPU(first_cpu), machine->kernel_filename, 0, FLASH_SIZE); 
     }
 }
 
@@ -48,16 +53,4 @@ static void s32k3x8evb_machine_init(MachineClass *mc)
 
 DEFINE_MACHINE("s32k3x8evb", s32k3x8evb_machine_init);
 
-/*
-Key Configuration Details
 
-    Clock Frequency:
-        SYSCLK is set to 120 MHz based on the specifications of the S32K358 MCU.
-
-    Memory Configuration:
-        Flash size: The S32K3X8EVB provides 4MB of onboard flash.
-        RAM size: Depending on the SoC, the default RAM for the S32K358 is 512KB.
-
-    Peripherals:
-        GPIO, CAN, LIN, UART, ADC, and Ethernet interfaces are part of the board and must be initialized through the SoC implementation (s32k358_soc).
-*/

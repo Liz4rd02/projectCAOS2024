@@ -115,7 +115,7 @@ SOURCE_FILES += $(KERNEL_DIR)/stream_buffer.c
 SOURCE_FILES += $(DEMO_PROJECT)/main.c
 SOURCE_FILES += $(DEMO_PROJECT)/lpuart.c
 SOURCE_FILES += $(DEMO_PROJECT)/pit.c
-SOURCE_FILES *= $(DEMO_PROJECT)/clock.c
+SOURCE_FILES += $(DEMO_PROJECT)/clock.c
 
 # Start-up code
 SOURCE_FILES += ./startup.c
@@ -150,10 +150,10 @@ clean:
 
 qemu_start:
 	$(qemu) -machine $(MACHINE) -cpu $(CPU) -kernel \
-	$(ELF) -monitor none -nographic -serial stdio -d guest_errors
+	$(ELF) -monitor none -nographic -serial stdio -d guest_errors 
 	
 qemu_debug:
 	$(qemu) -machine $(MACHINE) -cpu $(CPU) -kernel \
-	$(ELF) -monitor none -nographic -serial stdio $(QEMU_FLAGS_DBG) -d guest_errors
+	$(ELF) -monitor none -nographic -serial stdio $(QEMU_FLAGS_DBG) -d guest_errors -d int,cpu_reset,guest_errors
 gdb_start:
 	gdb-multiarch $(ELF)

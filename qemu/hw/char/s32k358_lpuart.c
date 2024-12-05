@@ -51,7 +51,7 @@ static uint64_t s32k358_lpuart_read(void *opaque, hwaddr addr, unsigned size) {
         s->stat &= ~LPUART_STAT_RDRF; /* Clear RXNE flag */
         return s->data;
     default:
-        qemu_log_mask(LOG_GUEST_ERROR, "Invalid read offset: 0x%" HWADDR_PRIx "\n", addr);
+        qemu_log_mask(LOG_GUEST_ERROR, "[lpuart] - Invalid read offset: 0x%" HWADDR_PRIx "\n", addr);
         return 0;
     }
 }

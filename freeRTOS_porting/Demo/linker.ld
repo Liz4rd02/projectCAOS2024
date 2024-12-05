@@ -26,7 +26,7 @@
 
 MEMORY
 {
-    FLASH (xr) : ORIGIN = 0x00000000, LENGTH = 2M 
+    FLASH (xr) : ORIGIN = 0x00400000, LENGTH = 2M 
     RAM (rw)  : ORIGIN = 0x20400000, LENGTH = 256K 
 }
 ENTRY(Reset_Handler)

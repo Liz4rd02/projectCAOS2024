@@ -22,7 +22,7 @@
 #define MC_ME_BASE 	    0x402DC000 
 
 //offsets fot MC_ME register (according to the reference manual: section 46.7.1)
-#define MC_ME_PRTN0_COFB1_CLKEN		((*volatile uint32_t *)(MC_ME_BASE + 0x134))
+#define MC_ME_PRTN0_COFB1_CLKEN		(*(volatile uint32_t *)(MC_ME_BASE + 0x134))
 
 
 
@@ -45,12 +45,10 @@ void NVIC_DisableIRQ(void);
 void NVIC_SetPriority(uint8_t priority);
 
 /*PIT methods*/
-void pit_init(uint8_t divid);
+void pit_init();
 
 void pit_disable(void);
 
 void pit_handler(void);
 
 #endif /* PIT_H */
-
-

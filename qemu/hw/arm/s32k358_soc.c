@@ -8,8 +8,11 @@
 #include "qapi/error.h"
 #include "sysemu/sysemu.h"
 #include "hw/misc/unimp.h"
+#include "qemu/log.h"
 
 static void s32k358_soc_initfn(Object *obj) {
+    qemu_log("Initializing S32K358 SoC\n");
+    
     S32K358State *s = S32K358_SOC(obj);
 
     /* Initialize ARM Cortex-M7 core */
@@ -17,6 +20,8 @@ static void s32k358_soc_initfn(Object *obj) {
 
     /* Initialize PIT (Periodic Interrupt Timer) */
     object_initialize_child(obj, "pit", &s->pit, TYPE_S32K358_PIT);
+    qemu_log("Initialized PIT child device\n");
+
 
     /* Initialize LPUART instances (8 modules) */
     for (int i = 0; i < NUM_LPUART; i++) {
@@ -28,6 +33,9 @@ static void s32k358_soc_initfn(Object *obj) {
 }
 
 static void s32k358_soc_realize(DeviceState *dev_soc, Error **errp) {
+	
+    qemu_log("Realizing S32K358 SoC\n");
+
     S32K358State *s = S32K358_SOC(dev_soc);
     MemoryRegion *system_memory = get_system_memory();
     DeviceState *dev;
@@ -46,7 +54,13 @@ static void s32k358_soc_realize(DeviceState *dev_soc, Error **errp) {
         error_propagate(errp, err);
         return;
     }
+    
+    memory_region_init_alias(&s->flash_alias, OBJECT(dev_soc),
+                             "S32K358.flash.alias", &s->flash, 0,
+                             FLASH_SIZE);
+
     memory_region_add_subregion(system_memory, FLASH_BASE_ADDR, &s->flash);
+    memory_region_add_subregion(system_memory, 0, &s->flash_alias);
 
     /* SRAM memory setup */
     memory_region_init_ram(&s->sram, NULL, "S32K358.sram", SRAM_SIZE, errp);
@@ -68,17 +82,9 @@ static void s32k358_soc_realize(DeviceState *dev_soc, Error **errp) {
     if (!sysbus_realize(SYS_BUS_DEVICE(&s->armv7m), errp)) {
         return;
     }
-
-    /* Realize PIT (Periodic Interrupt Timer) */
-    dev = DEVICE(&s->pit);
-    if (!sysbus_realize(SYS_BUS_DEVICE(&s->pit), errp)) {
-        return;
-    }
-    busdev = SYS_BUS_DEVICE(dev);
-    sysbus_mmio_map(busdev, 0, PIT_BASE_ADDR);
-    sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(DEVICE(&s->armv7m), PIT_IRQ));
-
-    /* Realize all LPUART instances (16 modules) */
+    qemu_log("Realized ARMv7M CPU\n"); 
+    
+     /* Realize all LPUART instances (16 modules) */
     const int lpuart_irq[NUM_LPUART] = {
         LPUART0_IRQ, LPUART1_IRQ, LPUART2_IRQ, LPUART3_IRQ,
         LPUART4_IRQ, LPUART5_IRQ, LPUART6_IRQ, LPUART7_IRQ
@@ -97,6 +103,24 @@ static void s32k358_soc_realize(DeviceState *dev_soc, Error **errp) {
         sysbus_mmio_map(busdev, 0, LPUART_BASE_ADDR + (i * 0x4000));
         sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(DEVICE(&s->armv7m), lpuart_irq[i]));
     }
+    
+    qemu_log("Realized UART\n");
+    
+    /* Realize PIT (Periodic Interrupt Timer) */
+    dev = DEVICE(&s->pit);
+    qdev_connect_clock_in(dev, "pclk", s->sysclk); // Connect the clock to the PIT
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->pit), errp)) {
+        return;
+    }
+    busdev = SYS_BUS_DEVICE(dev);
+    
+    qemu_log("PIT: pclk connected with frequency: %u Hz\n", clock_get_hz(s->sysclk));
+    sysbus_mmio_map(busdev, 0, PIT_BASE_ADDR);
+    sysbus_connect_irq(busdev, 0, qdev_get_gpio_in(DEVICE(&s->armv7m), PIT_IRQ));
+    
+    qemu_log("Realized PIT\n"); 
+    
+   
 }
 
 static void s32k358_soc_class_init(ObjectClass *klass, void *data) {

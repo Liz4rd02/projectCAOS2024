@@ -23,8 +23,8 @@ OBJECT_DECLARE_SIMPLE_TYPE(S32K358State, S32K358_SOC)
 #define SRAM_SIZE       0x00040000 	// 256 KB SRAM
 
 
-#define FLASH_BASE_ADDR  0x00000000   // Start address for flash memory, should be 0x00400000
-#define FLASH_SIZE       0x00200000   // 2 MB size
+#define FLASH_BASE_ADDR  0x00400000   // Start address for flash memory, should be 0x00400000
+#define FLASH_SIZE       0x00200000   // 4 blocks of 2 MB size
 
 /* IRQ Lines */
 #define LPUART0_IRQ 141
@@ -51,6 +51,7 @@ struct S32K358State {
 
     /* Memory regions */
     MemoryRegion flash;
+    MemoryRegion flash_alias;
     MemoryRegion sram;
 
     Clock *sysclk;

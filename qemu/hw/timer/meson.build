@@ -36,4 +36,9 @@ system_ss.add(when: 'CONFIG_SIFIVE_PWM', if_true: files('sifive_pwm.c'))
 specific_ss.add(when: 'CONFIG_AVR_TIMER16', if_true: files('avr_timer16.c'))
 
 system_ss.add(files('s32k358_pit.c'))
+#system_ss.add(files('/home/matteo/qemu/hw/core/ptimer.c'))
+#softmmu_ss.add(when: 'CONFIG_SOFTMMU', if_true: files('hw/ptimer.c'))
+
+#hw_sources += files('../core/ptimer.c')  # Include ptimer.c from hw/core
+#s32k358_pit = static_library('s32k358_pit', 's32k358_pit.c', dependencies : [ptimer])
 

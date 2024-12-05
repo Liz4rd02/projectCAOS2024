@@ -1,6 +1,6 @@
 #include <stdint.h>
 #ifndef CLOCK_H
-#define #CLOCK_H
+#define CLOCK_H
 
 //Base address for MC_CGM 
 #define MC_CGM_BASE		0x402D8000

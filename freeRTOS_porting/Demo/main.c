@@ -8,6 +8,7 @@
 
 #define mainTASK_PRIORITY    ( tskIDLE_PRIORITY + 2 )
 
+
 void vAssertCalled(void) {
     taskDISABLE_INTERRUPTS();  // Disable all interrupts
     while (1) {
@@ -15,16 +16,6 @@ void vAssertCalled(void) {
     }
 }
 
-void vApplicationTickHook(void) {
-    // Optional: Add code to execute every tick
-}
-
-void vApplicationMallocFailedHook(void) {
-    taskDISABLE_INTERRUPTS();
-    while (1) {
-        // Optional: Add a debugging mechanism
-    }
-}
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     (void)xTask;
@@ -35,6 +26,12 @@ void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     }
 }
 
+// PIT handler called by the ISR
+void PIT_Handler(void) {
+	PIT_TFLG0 = 0x01;  // Clear interrupt flag
+     	my_printf("PIT interrupt triggered!\n");
+  
+}
 
 
 void vTask1(void *pvParameters) {
@@ -55,15 +52,16 @@ void vTask2(void *pvParameters) {
 
 int main(void) {
     	// Initialize hardware (UART, PIT, etc.)
+    	__asm("CPSIE I");  // Enable interrupts in ARM architecture
     	lpuart_init();
-    	//pit_init();
+    	pit_init();
 
     	// Create tasks
-    	xTaskCreate(vTask1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-    	xTaskCreate(vTask2, "Task2", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    	//xTaskCreate(vTask1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    	//xTaskCreate(vTask2, "Task2", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
     	// Start the scheduler
-    	vTaskStartScheduler();
+    	//vTaskStartScheduler();
 
     	// Should never reach here
     	for (;;);
