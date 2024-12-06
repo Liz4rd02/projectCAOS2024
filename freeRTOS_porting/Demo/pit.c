@@ -5,18 +5,13 @@
 #define PIT_FREQUENCY 5UL
 
 void NVIC_EnableIRQ(void) {
-	NVIC_ISER3 |= (0x01 << 0);	//works 
+	NVIC_ISER3 |= (0x01 << 0);	 
 	
 }
 
 void NVIC_DisableIRQ(void) {
 	NVIC_ICER3 |= (0x01 << 0);
 }
-/*
-void NVIC_SetPriority(uint8_t priority) {
-	NVIC_IPR24 |= (priority << 0);
-}
-*/
 
 
 void NVIC_SetPriority(uint8_t priority) {
@@ -39,9 +34,14 @@ void pit_clear_interrupt(void) {
 // Initialize the PIT module
 void pit_init() {
 	pit_disable();
-	PIT_LDVAL0 = ( configCPU_CLOCK_HZ / PIT_FREQUENCY ) + 1UL; //The starting point where the timer begins to reduce.
-    	PIT_TCTRL0 = PIT_TCTRL_TEN | PIT_TCTRL_TIE ; //To the Timer Interupt Enable Flag (TIE) and enable the interrupt
-	PIT_MCR = 0x00;           // Enable PIT module (disable MDIS)
+	// Start value = (timer period / clock period) - 1
+	PIT_LDVAL0 = ( configCPU_CLOCK_HZ / PIT_FREQUENCY ) - 1UL; //The starting point where the timer begins to reduce.
+	// If you want the timer to generate an interrupt each time it expires, enable the timer interrupt (write 1 to TCTRLn[TIE]).
+	// Enable the timer (write 1 to TCTRLn[TEN]).
+    	PIT_TCTRL0 = PIT_TCTRL_TEN | PIT_TCTRL_TIE ; 
+    	
+    	//Activate, or enable, PIT (write 0 to MCR[MDIS]). All enabled timers load their start values and begin counting down
+	PIT_MCR = 0x00;         
 
 	NVIC_SetPriority(5);
 	NVIC_EnableIRQ(); 
@@ -53,4 +53,10 @@ void pit_disable(void) {
     	PIT_TCTRL0 |= (0x00 << 0U); //Disable the interrupt	
 }
 
+// PIT handler called by the ISR
+void PIT_Handler(void) {
+	pit_clear_interrupt();  // Clear interrupt flag
+     	my_printf("PIT interrupt triggered!\n");
+  
+}
 

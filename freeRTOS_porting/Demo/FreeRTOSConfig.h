@@ -21,9 +21,10 @@
 #define configUSE_TIME_SLICING                  1               /* Enable time slicing */
 #define configUSE_IDLE_HOOK                     0               /* Idle hook (optional) */
 #define configUSE_TICK_HOOK                     0               /* Tick hook (optional, e.g., for debugging) */
-#define configCHECK_FOR_STACK_OVERFLOW          2               /* Enable stack overflow checks */
-#define configUSE_MALLOC_FAILED_HOOK            0               /* Enable malloc failure hook */
+#define configCHECK_FOR_STACK_OVERFLOW          0               /* Disable stack overflow checks */
+#define configUSE_MALLOC_FAILED_HOOK            0               /* Disable malloc failure hook */
 #define configUSE_16_BIT_TICKS                  0               /* Use 32-bit ticks (required for Cortex-M) */
+
 
 /* Co-routine options */
 #define configUSE_CO_ROUTINES                   0

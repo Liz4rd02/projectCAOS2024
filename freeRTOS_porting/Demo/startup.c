@@ -46,28 +46,29 @@ extern uint32_t _estack;
 /* Vector table. */
 const uint32_t* isr_vector[] __attribute__((section(".isr_vector"), used)) =
 {
-    ( uint32_t * ) &_estack,	       //			0
-    ( uint32_t * ) &Reset_Handler,     // Reset                 1
-    ( uint32_t * ) &Default_Handler,   // NMI_Handler           2
-    ( uint32_t * ) &HardFault_Handler, // HardFault_Handler     3
-    ( uint32_t * ) &Default_Handler,   // MemManage_Handler     4
-    ( uint32_t * ) &Default_Handler,   // BusFault_Handler      5
-    ( uint32_t * ) &Default_Handler,   // UsageFault_Handler    6
-    0, // reserved    7
-    0, // reserved    8
-    0, // reserved    9
-    0, // reserved    10
-    ( uint32_t * ) &vPortSVCHandler,    // SVC_Handler          11
-    ( uint32_t * ) &Default_Handler,    // DebugMon_Handler     12
-    0, // reserved   13
-    ( uint32_t * ) &xPortPendSVHandler, // PendSV handler       14
-    ( uint32_t * ) &xPortSysTickHandler,// SysTick_Handler      15
+    ( uint32_t * ) &_estack,           		// Initial Stack Pointer (SP)    [0]
+    ( uint32_t * ) &Reset_Handler,     		// Initial Program Counter (PC)  [1]
+    ( uint32_t * ) &Default_Handler,       	// Non-maskable Interrupt (NMI)  [2]
+    ( uint32_t * ) &HardFault_Handler, 		// Hard Fault                    [3]
+    ( uint32_t * ) &Default_Handler, 		// MemManage Fault               [4]
+    ( uint32_t * ) &Default_Handler,  		// Bus Fault                     [5]
+    ( uint32_t * ) &Default_Handler,		// Usage Fault                   [6]
+    0,                                 		// RESERVED                      [7]
+    0,                                 		// RESERVED                      [8]
+    0,                                 		// RESERVED                      [9]
+    0,                                 		// RESERVED                      [10]
+    ( uint32_t * ) &vPortSVCHandler,       	// Supervisor Call (SVCall)      [11]
+    ( uint32_t * ) &Default_Handler,  		// Debug Monitor                 [12]
+    0,                                 		// RESERVED                      [13]
+    ( uint32_t * ) &xPortPendSVHandler,    	// Pendable request for service  [14]
+    ( uint32_t * ) &xPortSysTickHandler,   	// System tick timer (SysTick)   [15]
 
-    /* IRQ entries (Interrupt vector table starts here) */
-    [16 ... 111] = (uint32_t *) &Default_Handler, /* Fill with Default_Handler up to IRQ 111 */
-    [112] = (uint32_t *) &PIT_Handler,		/* IRQ 112 (96+16): PIT interrupt */
-    [113 ... 240] = (uint32_t *) &Default_Handler, /* Remaining entries */
+    /* IRQ entries */
+    [16 ... 111] = (uint32_t *) &Default_Handler, /* Default handlers */
+    [112] = (uint32_t *) &PIT_Handler,           /* IRQ 112 (96+16): PIT interrupt */
+    [113 ... 240] = (uint32_t *) &Default_Handler /* Remaining entries */
 };
+
 
 void Reset_Handler( void )
 {

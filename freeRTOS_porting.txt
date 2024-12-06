@@ -1,0 +1,154 @@
+### **FreeRTOS Porting to the S32K3X8EVB Board in QEMU**
+
+This section describes the steps we took to port **FreeRTOS** to the **S32K3X8EVB board**, based on the **S32K358 SoC**. We adapted FreeRTOS to run on our custom hardware in QEMU, including integrating peripherals such as **LPUART** (Low Power UART) and the **PIT (Periodic Interrupt Timer)**.
+
+---
+
+### **1. Modifying the Startup and Linker Files**
+
+#### **Startup File Modifications**
+To support the FreeRTOS kernel and the peripherals on our custom board, we made several key changes to the startup file:
+
+1. **Interrupt Vector Table**:
+   - We defined the interrupt vector table in the **startup.s** file, including the **PIT interrupt service routine (ISR)**.
+   - The vector table specifies the addresses of the interrupt handlers for the various system events, including those for the **PIT timer**.
+
+   **PIT ISR Handler Definition**:
+   The **PIT ISR** is associated with the interrupt number 96 (as defined in the QEMU model) and is mapped in the interrupt vector table.
+   The **PIT ISR** in the vector table is responsible for clearing the interrupt flag and performing necessary actions, such as notifying FreeRTOS of the interrupt occurrence.
+
+2. **Linker Script Modifications**:
+   - We updated the **linker.ld** script to specify the correct memory ranges for **SRAM** and **Flash**, as defined in the QEMU model. The **SRAM** starts at address `0x20400000`, and the **Flash memory** starts at `0x00400000` with a size of 2MB. These memory regions are reflected in the linker script to ensure proper memory mapping during the build.
+
+   **Example snippet from `linker.ld`:**
+   ```ld
+   MEMORY
+   {
+       FLASH  (rx)  : ORIGIN = 0x00400000, LENGTH = 2M
+       RAM    (rwx) : ORIGIN = 0x20400000, LENGTH = 256K
+   }
+   ```
+
+---
+
+### **2. Configuring FreeRTOS for ARM Cortex-M7**
+
+We adapted the **FreeRTOS kernel** to work with the **ARM Cortex-M7** processor used in the S32K358 SoC. This involved the following steps:
+
+1. **FreeRTOSConfig.h**:
+   - We created a custom **FreeRTOSConfig.h** file to specify configurations such as stack sizes, tick rate, interrupt priorities, and other settings specific to the ARM Cortex-M7 platform.
+   - In particular, we enabled interrupt nesting and configured the FreeRTOS tick to use the **SysTick timer**.
+   - We ensured the **FreeRTOS heap** was properly configured to use the available memory in the **SRAM**.
+
+   **Example configurations in `FreeRTOSConfig.h`:**
+   ```c
+   #define configUSE_PREEMPTION            1
+   #define configUSE_IDLE_HOOK             1
+   #define configCPU_CLOCK_HZ              (48000000UL)
+   #define configTICK_RATE_HZ              (1000)
+   #define configMAX_PRIORITIES            (5)
+   #define configMINIMAL_STACK_SIZE        (128)
+   #define configTOTAL_HEAP_SIZE           (configMINIMAL_STACK_SIZE * 10)
+   #define configUSE_TASK_NOTIFICATIONS    1
+   ```
+
+2. **Porting the ARM_CM7 Port.c File**:
+   - The **port.c** file for **ARM_CM7** was included to handle processor-specific initialization and context switching.
+   - This file implements the necessary assembly routines for interrupt handling, context saving, and restoring.
+
+---
+
+### **3. Using Peripherals (UART and PIT)**
+
+We utilized two key peripherals on the S32K358 SoC to interact with FreeRTOS: the **LPUART** for serial communication and the **PIT** for periodic interrupts.
+
+#### **LPUART Peripheral**:
+1. **lpuart.h and lpuart.c**:
+   - The **LPUART** peripheral is initialized by configuring its baud rate and enabling both the transmitter and receiver.
+   - The **`my_printf()`** function was used for UART-based debugging. It sends characters over the UART using the transmit register (`LPUART_DATA`).
+
+   **Key functions**:
+   - **`lpuart_init()`**: Initializes the **LPUART** by setting the baud rate and enabling the transmitter and receiver.
+   - **`my_printf()`**: Sends a string over UART, checking the status register (`LPUART_STAT_TDRE`) to ensure that the transmitter is ready before sending each character.
+
+   **Usage in FreeRTOS**: 
+   - We used **`my_printf()`** within tasks to log messages, useful for debugging and monitoring task execution.
+
+#### **PIT Peripheral**:
+1. **pit.h and pit.c**:
+   - The **PIT** is configured to trigger interrupts at a fixed frequency (5 Hz in this case).
+   - We wrote a custom **`pit_init()`** function that sets up the PIT, defines the load value for the timer, enables interrupts, and starts the timer.
+
+   **Key functions**:
+   - **`pit_init()`**: Configures the PIT by setting the load value and enabling the interrupt and timer.
+   - **`pit_handler()`**: Called when the PIT interrupt occurs, clearing the interrupt flag and performing the desired actions (e.g., printing messages over UART).
+   - **`NVIC_EnableIRQ()`**: This function enables the interrupt in the **NVIC** (Nested Vectored Interrupt Controller) for the PIT.
+
+   **Usage in FreeRTOS**:
+   - We integrated the **PIT interrupt** with **FreeRTOS** to trigger periodic tasks. When the PIT timer expires, it generates an interrupt that calls the **`pit_handler()`**, which could notify FreeRTOS to perform time-sensitive operations (e.g., switching tasks).
+
+---
+
+### **4. FreeRTOS Task Management**
+
+In the **main.c** file, we tested the functionality of the UART and PIT peripherals by creating two tasks:
+
+1. **Task 1**: Periodically prints "Task 1 running" every 2 seconds.
+2. **Task 2**: Periodically prints "Task 2 running" every 3 seconds.
+
+The tasks were created using **`xTaskCreate()`**, and the FreeRTOS scheduler was started using **`vTaskStartScheduler()`**.
+
+```c
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "lpuart.h"
+#include "pit.h"
+
+#define mainTASK_PRIORITY    ( tskIDLE_PRIORITY + 2 )
+
+void vTask1(void *pvParameters) {
+    (void)pvParameters;
+    for (;;) {
+        my_printf("Task 1 running\n");
+        vTaskDelay(pdMS_TO_TICKS(2000)); 
+    }
+}
+
+void vTask2(void *pvParameters) {
+    (void)pvParameters;
+    for (;;) {
+        my_printf("Task 2 running\n");
+        vTaskDelay(pdMS_TO_TICKS(3000)); 
+    }
+}
+
+int main(void) {
+    __asm("CPSIE I");  // Enable interrupts
+    lpuart_init();
+    pit_init();
+
+    // Create tasks
+    xTaskCreate(vTask1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    xTaskCreate(vTask2, "Task2", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+
+    // Start the scheduler
+    vTaskStartScheduler();
+
+    // Should never reach here
+    for (;;);
+    return 0;
+}
+```
+
+---
+
+### **5. Conclusion**
+
+In the second part of the project, we successfully ported **FreeRTOS** to the **S32K3X8EVB board** running in QEMU. We:
+- Configured FreeRTOS with a custom **FreeRTOSConfig.h**.
+- Integrated the **Cortex-M7 ARM_CM7 port** for ARM-specific features.
+- Used **LPUART** and **PIT** peripherals to interact with the system and demonstrate UART communication and timer-based interrupts.
+- Created FreeRTOS tasks to handle concurrent operations, testing the functionality of both peripherals in a multi-tasking environment.
+
+This port provides a functional FreeRTOS setup with peripheral support, ensuring the S32K358 SoC can be efficiently simulated and used for real-time applications.
