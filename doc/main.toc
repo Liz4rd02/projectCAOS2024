@@ -1,0 +1,17 @@
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Before Adding the Board to QEMU}{4}{chapter.2}%
+\contentsline {section}{\numberline {2.1}What is a System-on-Chip?}{4}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Relationship between IRQs and Peripherals}{4}{section.2.2}%
+\contentsline {chapter}{\numberline {3}Adding the Board to QEMU}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Board Initialization}{5}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Board Integration with QEMU}{5}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Leveraging the Pre-Implemented CPU}{6}{section.3.3}%
+\contentsline {section}{\numberline {3.4}SoC Implementation}{6}{section.3.4}%
+\contentsline {section}{\numberline {3.5}SoC Integration with QEMU}{7}{section.3.5}%
+\contentsline {section}{\numberline {3.6}Configuring Peripherals}{7}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}LPUART Modules Configuration}{8}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Timer Configuration}{9}{subsection.3.6.2}%
+\contentsline {section}{\numberline {3.7}Editing Build Files}{11}{section.3.7}%
+\contentsline {section}{\numberline {3.8}Building QEMU}{11}{section.3.8}%
+\contentsline {chapter}{\numberline {4}Conclusions}{12}{chapter.4}%

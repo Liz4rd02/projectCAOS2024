@@ -1,0 +1,100 @@
+% Twoside implica che i capitoli inizino sempre con la prima pagina a sinistra, eventualmente lasciando una pagina vuota nel capitolo precedente. 
+\documentclass[a4paper, twoside,openright]{report}
+
+% Dimensione dei margini
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry} 
+% Dimensione del font
+\usepackage[fontsize=12pt]{scrextend}
+% Lingua del testo
+\usepackage[english]{babel}
+% Lingua per la bibliografia
+\usepackage[fixlanguage]{babelbib}
+% Codifica del testo
+\usepackage[utf8]{inputenc} 
+% Encoding del testo
+\usepackage[T1]{fontenc}
+% Per modificare l'header delle pagine 
+\usepackage{fancyhdr}               
+
+\usepackage{float}
+
+% Librerie matematiche
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}         
+
+% Uso delle immagini
+\usepackage{graphicx}
+% Uso dei colori
+\usepackage[dvipsnames]{xcolor}         
+% Uso dei listing per il codice
+\usepackage{listings}          
+% Per inserire gli hyperlinks tra i vari elementi del testo 
+\usepackage{hyperref}     
+% Diversi tipi di sottolineature
+\usepackage[normalem]{ulem}
+
+% -----------------------------------------------------------------
+
+% Modifica lo stile dell'header
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\rightmark}
+\rhead{\textbf{\thepage}}
+\fancyfoot{}
+\setlength{\headheight}{16pt}
+
+% Rimuove il numero di pagina all'inizio dei capitoli
+\fancypagestyle{plain}{
+  \fancyfoot{}
+  \fancyhead{}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% Togliendo il commento al comando che segue, si inseriscono nella bibliografia anche le fonti presenti in Bibliography.bib ma non citati direttamente con il comando \cite
+\nocite{*}
+
+% Margini prima e dopo blocchi di codice, per avere più distanza
+\lstset{aboveskip=20pt,belowskip=20pt}
+
+% Modifica dello stile dei riferimenti
+\hypersetup{
+    colorlinks,
+    linkcolor=black,
+    citecolor=black
+}
+
+% Aggiunti definizioni, teoremi, linea e listing
+\newtheorem{definition}{Definizione}[section]
+\newtheorem{theorem}{Teorema}[section]
+\providecommand*\definitionautorefname{Definizione}
+\providecommand*\theoremautorefname{Teorema}
+\providecommand*{\listingautorefname}{Listing}
+\providecommand*\lstnumberautorefname{Linea}
+
+\raggedbottom
+
+% -----------------------------------------------------------------
+% personal commands
+
+\usepackage{multicol}
+\usepackage{xcolor}
+
+
+% -----------------------------------------------------------------
+\begin{document}
+\include{chapters/front_page}
+\let\cleardoublepage\clearpage
+
+\tableofcontents
+
+\include{chapters/introduction}
+\include{chapters/insights}
+\include{chapters/addboard}
+\include{chapters/conclusions}
+
+
+\bibliographystyle{unsrt}
+\bibliography{main}
+\end{document}
+

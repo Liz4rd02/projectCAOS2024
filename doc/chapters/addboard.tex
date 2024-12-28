@@ -1,0 +1,258 @@
+
+
+\chapter{Adding the Board to QEMU}
+A board in QEMU represents the hardware platform that uses a SoC. This chapter explains the steps and considerations involved in implementing a new board within the QEMU emulator. By simulating a board, developers can create and test software in a virtual environment that mimics the behavior of real hardware.
+\section{Board Initialization}
+The first step in adding a new board to QEMU is to define a board initialization file (i.e. \texttt{hw/arm/s32k3x8evb.c}, relative to the QEMU source root). This file specifies the clock configuration, the SoC to use and the process for loading the firmware or kernel into memory.
+
+\vspace{0.3cm}
+
+\noindent For detailed information on the board initialization process, refer to the following steps:
+\begin{itemize}
+    \item \textbf{Clock Initialization:} Create a fixed-frequency clock (SYSCLK) using \texttt{clock\_new()} and set it to 48 MHz (defined by \texttt{SYSCLK\_FRQ}), based on the S32K358 hardware specifications. Connect the clock to the SoC using \texttt{qdev\_connect\_clock\_in()}, ensuring it serves as the primary clock source for the system.
+    \item \textbf{SoC Instantiation:} Instantiate the S32K358 SoC using \texttt{qdev\_new(TYPE\_S32K358\_SOC)}. Add the SoC to the machine’s object hierarchy with \texttt{object\_property\_add\_child()} and associate it with the SYSCLK. Use \texttt{sysbus\_realize\_and\_unref()} to finalize the creation and registration of the SoC within QEMU’s system bus.
+    \item \textbf{Firmware Loading:} If a firmware file is specified (\texttt{machine->kernel\_filename}), it is loaded into the system's memory using \texttt{armv7m\_load\_kernel()}. This function places the firmware into the SoC’s flash memory region (up to \texttt{FLASH\_SIZE}).
+    \item \textbf{Board Registration:} Register the board in QEMU by defining the board name (\texttt{s32k3x8evb}) and associating it with the board initialization function (\texttt{s32k3x8evb\_machine\_init()}) using the \texttt{DEFINE\_MACHINE()} macro. This function specifies the board's description (\texttt{mc->desc}) and valid CPU types (i.e., cortex-m7).
+    \item \textbf{Logging; Debug Information:} Use the \texttt{qemu\_log()} function to provide debug information, such as the clock frequency and the successful realization of the SoC.
+\end{itemize}
+
+\section{Board Integration with QEMU}
+The board is integrated into QEMU’s build system by creating a \textit{Kconfig} entry (located in \texttt{hw/arm/Kconfig}) for the board, specifying its dependencies (e.g., the SoC). This integration enables the board for ARM architectures, making it selectable during the configuration process.
+
+\vspace{0.3cm}
+
+\noindent The Kconfig entry for the S32K3X8EVB board and the S32K358 SoC is as follows:
+\begin{verbatim}
+    config S32K3X8EVB
+        bool
+        default y
+        depends on TCG && ARM
+        select S32K358_SOC
+        
+    config S32K358_SOC
+        bool
+        select ARM_V7M
+\end{verbatim}
+
+\section{Leveraging the Pre-Implemented CPU}
+QEMU provides pre-implemented CPU models that can be used for new boards with minimal customization. For the S32K3X8EVB board, the ARM Cortex-M7 CPU was utilized. The CPU type is specified during the SoC initialization, ensuring that the correct CPU model is integrated into the board. Additionally, CPU-specific properties such as the number of IRQ lines (\textit{num-irq}), priority bits (\textit{num-prio-bits}), and bit-banding support (e.g., enabling \textit{bit-banding}) are configured to align with the Cortex-M7 CPU’s specifications.
+
+\section{SoC Implementation}
+The SoC implementation in QEMU involves defining the SoC’s memory regions, peripherals, and IRQ assignments. The SoC is encapsulated in a header file (e.g., \texttt{s32k358\_soc.h}, located at \texttt{include/hw/arm/s32k358\_soc.h} relative to the QEMU source root) that provides the foundational definitions and structures needed to emulate the S32K358 SoC in QEMU. It encapsulates the SoC's core features, including memory regions, peripherals, and IRQ assignments. 
+
+\begin{verbatim}
+    SRAM:
+    - Base Address: 0x20400000
+    - Size: 256 KB (SRAM_SIZE = 0x00040000)
+
+    Flash Memory (Defined as ROM):
+    - Base Address: 0x00400000
+    - Size: 2 MB (FLASH_SIZE = 0x00200000)
+    The flash memory is defined along with an alias region, 
+                likely intended for memory remapping purposes.
+
+    CPU: ARM Cortex-M7 core, configured with 240 IRQ lines, 
+                        4 priority bits and bit-banding enabled.
+
+    Peripherals: 
+    - LPUARTs: Realizes 8 LPUART modules, 
+                    each connected to a serial device, 
+                    and maps MMIO (Memory-Mapped I/O) and interrupts.
+                UART IRQs (LPUART0_IRQ to LPUART7_IRQ) range from 141 to 148.
+    - PIT: Configures the periodic interrupt timer 
+            and links it to the system clock and CPU.
+            PIT IRQ is set to 96.
+\end{verbatim}
+
+\noindent Inside this file, we can also find the SoC’s state structure (\texttt{S32K358State}), which integrates the CPU, memory regions, peripherals, and clock, enabling accurate hardware emulation.
+\begin{verbatim}
+struct S32K358State {
+    SysBusDevice parent_obj;
+
+    /* ARMv7M CPU */
+    ARMv7MState armv7m;
+
+    /* Peripherals */
+    S32K358LPUARTState lpuart[NUM_LPUART];
+    S32K358PITState pit;
+
+    /* Memory regions */
+    MemoryRegion flash;
+    MemoryRegion flash_alias;
+    MemoryRegion sram;
+
+    Clock *sysclk;
+};
+\end{verbatim}
+
+\section{SoC Integration with QEMU}
+The SoC is declared as a QEMU device type (\texttt{TYPE\_S32K358\_SOC}), enabling its instantiation and integration with other components, such as the board (\texttt{s32k3x8evb}) or specific peripherals. This declaration follows QEMU’s QOM (QEMU Object Model) framework, which standardizes object creation and property management.
+
+\vspace{0.5cm}
+
+\noindent Create a source file (e.g., \textit{…/hw/arm/s32k358\_soc.c}) to model the S32K358 SoC, enabling QEMU to simulate its hardware features. Initialize memory regions (e.g., Flash and SRAM) and connect peripherals (e.g., LPUARTs and PIT) to memory-mapped I/O and IRQ lines of the S32K358 SoC. This file also configures the clock and ensures that peripherals are correctly mapped into the system memory.
+
+
+\begin{center}
+    \textit{The SoC integrates these components into a cohesive unit, representing the real hardware architecture.}
+\end{center}
+
+\noindent Key functions:
+\begin{itemize}
+    \item \texttt{s32k358\_soc\_initfn()}: Initializes the SoC, including the ARMv7M CPU core, PIT, and 8 LPUART instances. It also creates the system clock (\texttt{qdev\_init\_clock\_in}).
+    \item \texttt{s32k358\_soc\_realize()}: Finalizes the SoC setup and integrates it into the QEMU emulation environment. This function validates the system clock, sets up memory regions, realizes the CPU, LPUARTs, and PIT, and connects them to the system bus.
+\end{itemize}
+
+\section{Configuring Peripherals}
+\begin{center}
+    \textit{The LPUARTs and PIT are essential peripherals in the S32K358 SoC, providing serial communication and timing functionality, respectively.}
+\end{center}
+\subsection{LPUART Modules Configuration}
+The Low Power Universal Asynchronous Receiver-Transmitter (LPUART) modules are crucial for serial communication between the emulated system and external devices.
+
+The file \texttt{include/hw/char/s32k358\_lpuart.h} (relative to the QEMU source root) models the LPUART hardware for the S32K358 SoC. This file includes the necessary register offsets, bit definitions, and the structure to model the LPUART hardware and its interaction with other QEMU components.
+
+\vspace{0.3cm}
+
+The registers:
+\begin{verbatim}
+    - Baud Rate Register (LPUART_BAUD): Sets the baud rate for communication.
+    - Status Register (LPUART_STAT): Provides status information about the UART.
+    - Control Register (LPUART_CTRL): Controls the operation of the UART.
+    - Data Register (LPUART_DATA): Reads or writes data to/from the UART.
+\end{verbatim}
+
+\noindent The include file also contains the state structure (\texttt{S32K358LPUARTState}), which encapsulates the LPUART’s components:
+\begin{verbatim}
+    - Memory-mapped I/O regions for communication with the LPUART.
+    - IRQ line for interrupt handling.
+    - Baud rate, status, control, and data registers to store the UART's state.
+    - Character backend for serial communication.
+\end{verbatim}
+  
+\vspace{0.3cm}
+
+\noindent The \texttt{hw/char/s32k358\_lpuart.c} file (relative to the QEMU source root) contains the implementation of the LPUART modules, including initialization, memory-mapped I/O, register operations, and IRQ handling for each UART module.
+
+Main functions:
+\begin{itemize}
+    \item \texttt{s32k358\_lpuart\_init()}: Initializes the LPUART modules, sets up the MMIO regions, and connects the UART to the serial devices.
+    \item \texttt{s32k358\_lpuart\_realize()}: Finalizes the configuration of the LPUART by setting default values for its registers (baud rate, control, \dots). It also sets up the UART's receive and transmit handlers (\texttt{qemu\_chr\_fe\_set\_handlers}), enabling communication between the device and external systems.
+    \item \texttt{s32k358\_lpuart\_read()} and \texttt{s32k358\_lpuart\_write()}: Handle read and write operations on the UART's data register, enabling interaction with the emulated LPUART hardware through memory-mapped I/O.
+    \item \texttt{s32k358\_lpuart\_can\_receive()} and \texttt{s32k358\_lpuart\_receive()}: Check if the UART can receive data (by verifying the receiver flag \texttt{RDRF}) and handle the reception of data by updating the data register, setting the receive flag (\texttt{RDRF}), and triggering an interrupt via \texttt{qemu\_set\_irq}, respectively. This ensures proper communication between the UART and external devices.
+    \begin{center}
+        \textit{IRQ Handling: When the LPUART triggers an interrupt (e.g., after data is received or transmitted), an IRQ is signaled to the CPU. The \texttt{qemu\_set\_irq} function is used to propagate the interrupt and notify the CPU.}
+    \end{center}
+\end{itemize}
+\noindent Throughout the module, \textit{qemu\_log} and custom debug macros are used for logging UART operations, helping track the initialization process, interrupt handling, and I/O operations. This aids in debugging the UART behavior when interacting with QEMU.
+
+\subsection{Timer Configuration}
+The Periodic Interrupt Timer (PIT) is a crucial peripheral in the S32K358 SoC, providing periodic interrupts to the CPU for time-based operations, such as periodic events or task scheduling. The \texttt{hw/timer/s32k358\_pit.c} and \texttt{include/hw/timer/s32k358\_pit.h} files (relative to the QEMU source root) in QEMU emulate the PIT device, managing its configuration, timer functionality, and interrupt handling.
+The registers:
+\begin{verbatim}
+    - Module Control Register (PIT_MCR): 
+            Enables/disables the PIT and controls its operation.
+    - Timer Load Value Register (PIT_LDVAL0): 
+            Sets the timer's initial value.
+    - Current Timer Value Register (PIT_CVAL0): 
+            Stores the current timer value.
+    - Timer Control Register (PIT_TCTRL0): 
+            Controls the timer enable (TEN) and interrupt enable (TIE) settings.
+    - Timer Flag Register (PIT_TFLG0): 
+            Indicates the timer's status.
+\end{verbatim}
+The include file also defines the state structure (\texttt{S32K358PITState}), which encapsulates the PIT's components:
+\begin{verbatim}
+    - Memory-mapped I/O regions for communication with the PIT registers.
+    - IRQ line for interrupt handling.
+    - PIT Clock and timer state (initialized by the ptimer framework) 
+            to manage the PIT's operation.
+\end{verbatim}
+\begin{center}
+    \textcolor{red}{Beware:} \textit{The PIT module does not have an integrated prescaler, so we need to interact with the system clock.}
+\end{center}
+The \texttt{hw/timer/s32k358\_pit.c} file contains the implementation of the PIT module, including initialization, memory-mapped I/O, register operations, and IRQ handling for the timer.
+Main Functions:
+\begin{itemize}
+    \item \texttt{s32k358\_pit\_init()}: Initializes the PIT module, sets up the MMIO regions, and connects the PIT to the system clock. The PIT is clocked by the \texttt{pclk} (periodic clock), which is connected via the \texttt{qdev\_init\_clock\_in} function. This ensures the PIT operates at the correct frequency and generates interrupts at the expected intervals.
+    \item \texttt{s32k358\_pit\_realize()}: Finalizes the PIT configuration. It ensures that the clock is connected, initializes the timer, and configures the interrupt behavior.
+    \item \texttt{s32k358\_pit\_read()} and \texttt{s32k358\_pit\_write()}: Handle read and write operations on the PIT registers, allowing the CPU to control the timer’s operation.
+    \item \texttt{s32k358\_pit\_tick()}: The callback function that is triggered when the PIT timer reaches zero, signaling an interrupt. It checks if the interrupt flag (\texttt{TIE}) is enabled. If so, it sets the interrupt flag (\texttt{TFLG0}) and triggers the IRQ line, notifying the CPU of the interrupt.
+    \item \texttt{s32k358\_pit\_clk\_update()}: Updates the PIT's timer period based on the system clock (\texttt{pclk}). The function recalculates the period of the timer based on the current system clock frequency using \texttt{ptimer\_set\_period\_from\_clock}. This ensures that the timer’s period is adjusted according to the clock frequency, enabling accurate timing for periodic events.
+\end{itemize}
+
+\begin{center}
+    \textit{IRQ Handling: The PIT can generate interrupts when the timer expires. The \texttt{qemu\_irq\_pulse} function triggers the interrupt, which is then processed by the interrupt controller. The PIT’s interrupt line is linked to IRQ line 96, which is handled by the NVIC (Nested Vectored Interrupt Controller) in the ARM Cortex-M7 CPU.}
+\end{center}
+
+\noindent Debugging and logging mechanisms are provided in the module using \texttt{qemu\_log} and debug macros. These logs help track the PIT’s state and behavior, which is particularly useful for ensuring the timer operates correctly and the interrupts are triggered as expected.
+    
+\vspace{0.2cm}
+
+\noindent In order to enable the PIT (Periodic Interrupt Timer) module, set the \texttt{MC\_ME} module\footnote{System Control Module (MC\_ME) provides a control interface to enable or disable clocks for various peripherals within the SoC.}, specifically by configuring the register \texttt{PRTN0\_COFB1\_CLKEN} at \texttt{REQ44}.
+
+
+\subsection*{Configure the Clock}
+    \begin{enumerate}
+        \item Enable the FIRC clock as the primary source (\texttt{MC\_CGM.MUX\_0\_CSC[SELSTAT]}):
+            \begin{itemize}
+                \item The \texttt{FIRC} (Fast Internal Reference Clock) is a high-speed, internal clock that is typically used as the main clock source for many peripherals in the system. The \texttt{SELSTAT} bit in the \texttt{MC\_CGM.MUX\_0\_CSC} register determines which clock source is selected. To use the FIRC as the primary clock, this bit needs to be set to the value corresponding to the FIRC source.
+            \end{itemize}
+        \item Set the divider (\texttt{HSE\_B.CONFIG\_REG\_GPR[FIRC\_DIV\_SEL]}):
+            \begin{itemize}
+                \item After selecting the FIRC as the clock source, you can set the divider to adjust the clock frequency for other system components. The \texttt{FIRC\_DIV\_SEL} bit field in the \texttt{HSE\_B.CONFIG\_REG\_GPR} register allows you to select the appropriate divider value. This is important for ensuring the clock frequency is within the required range for system performance.
+            \end{itemize}
+        \item Select the appropriate mode for \texttt{CORE\_CLK}, in order to configure the source clock for the \texttt{pit0} timer:
+            \begin{itemize}
+                \item The \texttt{CORE\_CLK} is the main clock used by the CPU and other critical components. The configuration of the \texttt{CORE\_CLK} determines which clock source will drive the \texttt{pit0} (Periodic Interrupt Timer). Setting the \texttt{CORE\_CLK} mode ensures the proper source is used for the timer, which is crucial for accurate timing operations in the system.
+            \end{itemize}
+        \item Select the proper divider \texttt{MC\_CGM.MUX\_0\_DC\_0[DIV]} to be configured as prescaler. Configure the prescaler in order to have a defined clock frequency:
+            \begin{itemize}
+                \item A prescaler divides the clock frequency before it is used by the PIT. This allows the PIT to run at a slower rate than the system clock, which is necessary to achieve the desired interrupt frequency. The \texttt{DIV} field in the \texttt{MC\_CGM.MUX\_0\_DC\_0} register determines the prescaler value. By configuring the prescaler, you ensure that the PIT has an appropriate clock frequency for accurate periodic interrupts.
+            \end{itemize}
+            \item Link the timer’s interrupt line to the ARM Cortex-M7 CPU for accurate emulation:
+            \begin{itemize}
+                \item In an ARM Cortex-M7 system, interrupts are managed by the \textit{NVIC} (Nested Vectored Interrupt Controller). You need to link the timer's interrupt output to the NVIC so that it is properly handled when triggered by the timer.
+                \item This involves configuring the interrupt source in the NVIC, ensuring that the timer triggers the interrupt correctly.
+            \end{itemize}
+            
+            \item Add the reference to the library in the Makefile: 
+            \begin{itemize}
+                \item You must include the necessary library or header file for managing NVIC-related functions. In this case, the line \texttt{\#include "hw/intc/armv7m\_nvic.h"} should be added to the Makefile to enable the NVIC management functions.
+            \end{itemize}
+            
+            \item Define NVIC registers (\texttt{ISER3}, \texttt{ICER3}, \texttt{ISPR3}, \texttt{ICPR0}, \texttt{IABR}, \texttt{IPR}) to handle IRQ 96:
+            \begin{itemize}
+                \item In order to manage interrupts in the ARM Cortex-M7, you need to define and configure several NVIC registers.
+                \item These registers are used to enable, disable, and configure the priority of interrupts, including IRQ 96, which is likely the interrupt line for the PIT (Periodic Interrupt Timer).
+            \end{itemize}
+        \end{enumerate}
+    
+\section{Editing Build Files}
+After implementing the board and SoC, the next step is to edit the build files to include the new board configuration in the QEMU build system. This involves updating the \texttt{mason.build} file to include the board and SoC source files and the \texttt{Kconfig} file to enable the board based on the SoC selection.
+
+\begin{itemize}
+    \item Add the board (\textit{s32k3x8evb.c}) and the SoC (\textit{s32k358\_soc.c}) to the \textit{hw/arm/mason.build} file (relative to the QEMU source root). This ensures that these files are included in the list of source files to be compiled when building the project for an ARM-based target.
+    \item Enable the board-SoC dependency in the \textit{hw/arm/Kconfig} file (relative to the QEMU source root) to ensure that the board is only available when the corresponding SoC is selected.
+\end{itemize}
+
+\section{Building QEMU}
+\begin{center}
+    \textit{After completing the board/SoC setup.}
+\end{center}
+\begin{itemize}
+    \item Rebuild QEMU with the updated configurations.
+\begin{verbatim}
+./configure --target-list=arm-softmmu
+make -j$(nproc)
+\end{verbatim}
+    \item Run QEMU with the new board configuration.
+\begin{verbatim}
+qemu-system-arm -M s32k3x8evb -nographic
+\end{verbatim}
+\end{itemize}
+
+
+    
+
+We verified functionality by running sample firmware and checking peripheral interactions.
