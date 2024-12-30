@@ -1,2 +1,16 @@
 \chapter{Introduction}
+Integrating a new board into QEMU is a complex but essential process for emulating embedded hardware in a virtual environment. This project documents the addition of the NXP S32K3X8EVB board, based on the S32K358 System-on-Chip (SoC), into the QEMU ecosystem. 
+\\    
+\\
+The NXP S32K3X8EVB board features an ARM Cortex-M7 CPU and includes integrated peripherals such as \textbf{UART} (Universal Asynchronous Receiver-Transmitter) and \textbf{Timers}. Due to the complexity of this project, this group will limit itself to implementing only these two peripherals.\\
+\noindent
+This work follows several key phases:
+\begin{enumerate}
+    \item \textbf{Board Definition}: Initial board configuration, including the implementation of the initialization file and the definition of system clocks.
+    \item \textbf{SoC Implementation}: Creation of the SoC structure, including memory regions, peripherals, and IRQ (Interrupt Request) lines.
+    \item \textbf{QEMU Integration}: Modify­ing QEMU configuration files to include the new board and its corresponding SoC.
+    \item \textbf{Peripheral Configuration}: Detailed setup of UART modules and timers to ensure the proper functioning of the board’s main features.
+\end{enumerate}
+Through this process, it has been possible to accurately simulate the NXP S32K3X8EVB board within QEMU.
+ 
 
