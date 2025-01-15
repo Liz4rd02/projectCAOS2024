@@ -1,4 +1,4 @@
-# projectCAOS2024
+# CAOS Project 2024
 The documentation is available at [Documentation (click me!)](doc/main.pdf)
 
 ```sh
