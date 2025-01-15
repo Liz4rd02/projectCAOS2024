@@ -1,2 +1,2 @@
 # projectCAOS2024
-[Link Text](doc/main.pdf)
+<embed src="doc/main.pdf" type="application/pdf" width="100%" height="600px" />
