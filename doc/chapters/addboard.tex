@@ -253,17 +253,23 @@ After implementing the board and SoC, the next step is to edit the build files t
     sudo apt install ninja-build
     sudo apt install pkg-config
     sudo apt install libglib2.0-dev
-    sudo apt install ninja-build bzip2 
-    sudo apt install python3-pip libfdt-dev libpixman-1-dev zlib1g-dev
+    sudo apt install bzip2 python3-pip libfdt-dev
+    sudo apt install libpixman-1-dev zlib1g-dev
     \end{verbatim}
 
-    \item Run QEMU with the new board configuration.
+    \item In the Demo directory of FreeRTOS, run the following command to build the firmware:
 \begin{verbatim}
-qemu-system-arm -M s32k3x8evb -nographic
+To start QEMU:
+    make qemu_start
+
+To debug:
+    terminal1: make qemu_debug
+    terminal2: make gdb-start 
+            (and then insert the command "target remote localhost:1234")
 \end{verbatim}
 \end{itemize}
 
 
     
 
-We verified functionality by running sample firmware and checking peripheral interactions.
+We verified functionality by running sample firmware and checking peripheral interactions through a serial terminal. The UART and PIT peripherals were tested to ensure proper communication and timing behavior, respectively. The successful integration of the NXP S32K3X8EVB board into QEMU demonstrates the accurate emulation of the board’s hardware features within a virtual environment.

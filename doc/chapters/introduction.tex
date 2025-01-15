@@ -1,16 +1,14 @@
 \chapter{Introduction}
-Integrating a new board into QEMU is a complex but essential process for emulating embedded hardware in a virtual environment. This project documents the addition of the NXP S32K3X8EVB board, based on the S32K358 System-on-Chip (SoC), into the QEMU ecosystem. 
-\\    
-\\
-The NXP S32K3X8EVB board features an ARM Cortex-M7 CPU and includes integrated peripherals such as \textbf{UART} (Universal Asynchronous Receiver-Transmitter) and \textbf{Timers}.\\
-\noindent
+Integrating a new board into QEMU is a complex but essential process for emulating embedded hardware in a virtual environment. This project documents the addition of the NXP S32K3X8EVB board, based on the S32K358 System-on-Chip (SoC), into the QEMU ecosystem. The NXP S32K3X8EVB board features an ARM Cortex-M7 CPU and includes integrated peripherals such as LPUART (Low Power Universal Asynchronous Receiver-Transmitter) and PIT (Periodic Interrupt Timer).
+
 This work follows several key phases:
 \begin{enumerate}
-    \item \textbf{Board Definition}: Initial board configuration, including the implementation of the initialization file and the definition of system clocks.
-    \item \textbf{SoC Implementation}: Creation of the SoC structure, including memory regions, peripherals, and IRQ (Interrupt Request) lines.
-    \item \textbf{QEMU Integration}: Modify­ing QEMU configuration files to include the new board and its corresponding SoC.
-    \item \textbf{Peripheral Configuration}: Detailed setup of UART modules and timers to ensure the proper functioning of the board’s main features.
+\item Board Definition: Initial board configuration, including the implementation of the board initialization file, definition of system clocks, and creation of the fixed-frequency clock (SYSCLK) set to 48 MHz.
+\item SoC Implementation: Creation of the SoC structure, including memory regions (such as flash memory), peripherals (including LPUART and PIT), and IRQ (Interrupt Request) lines for handling interrupts from the peripherals.
+\item QEMU Integration: Modifying QEMU configuration files to include the new board and its corresponding SoC, including Kconfig entries for enabling the board in ARM architectures.
+\item Peripheral Configuration: Detailed setup of LPUART modules for serial communication and PIT for time-based operations such as periodic interrupts and task scheduling.
 \end{enumerate}
+
 Through this process, it has been possible to accurately simulate the NXP S32K3X8EVB board within QEMU.
  
 
