@@ -1,4 +1,4 @@
-qemu = /home/matteo/qemu/build/qemu-system-arm
+qemu = ../../qemu/build/qemu-system-arm
 
 # Demo code
 DEMO_PROJECT := .

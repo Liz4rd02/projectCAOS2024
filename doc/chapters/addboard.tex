@@ -241,11 +241,22 @@ After implementing the board and SoC, the next step is to edit the build files t
     \textit{After completing the board/SoC setup.}
 \end{center}
 \begin{itemize}
-    \item Rebuild QEMU with the updated configurations.
-\begin{verbatim}
-./configure --target-list=arm-softmmu
-make -j$(nproc)
-\end{verbatim}
+    \item In the QEMU source directory, run the following commands to configure and build QEMU for the ARM target:    
+    \begin{verbatim}
+    ./configure --target-list=arm-softmmu
+    make -j$(nproc)
+        \end{verbatim}
+            Maybe will be asked to install some dependencies:
+    \begin{verbatim}
+    sudo apt update
+    sudo apt install python3-venv
+    sudo apt install ninja-build
+    sudo apt install pkg-config
+    sudo apt install libglib2.0-dev
+    sudo apt install ninja-build bzip2 
+    sudo apt install python3-pip libfdt-dev libpixman-1-dev zlib1g-dev
+    \end{verbatim}
+
     \item Run QEMU with the new board configuration.
 \begin{verbatim}
 qemu-system-arm -M s32k3x8evb -nographic
